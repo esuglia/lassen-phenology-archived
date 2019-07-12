@@ -44,13 +44,35 @@ library(stringr)
 #d <- d17 %>%
  # full_join(d18, by = c("uniqueID" = "uniqueID"))
 
-#write.csv(d, "alldatatest.csv")
+#write.csv(d, "lassen-phen.csv")
 
 #### Analysis ####
 
-read_csv()
+d <- read_csv("lassen-phen.csv")
 
-#separate(uniqueID, sep = " ", into = c("site", "plot", "quad", "ind")) %>% # deconcatenate uniqueID column into site, plot, quad, individual
-# mutate(ind = str_remove_all(ind, "#")) %>% # remove "#" from individual numbers in ind column
-#mutate(quad = str_remove_all(quad, "Q")) %>%
-#mutate(plot = str_remove_all(plot, "P"))
+# clean up final data file a bit
+d <- select(d, -X1) %>%
+  separate(uniqueID, sep = " ", into = c("site", "plot", "quad", "ind")) %>% # deconcatenate uniqueID column into site, plot, quad, individual
+  mutate(ind = str_remove_all(ind, "#")) %>% # remove "#" from individual numbers in ind column
+  mutate(quad = str_remove_all(quad, "Q")) %>%
+  mutate(plot = str_remove_all(plot, "P")) %>%
+  rename("itero.per.17" = "itero.per?") %>%
+  filter(phen.1 != "D" | is.na(phen.1)) %>%
+  # remove those that died before the first ever survey in 2017
+  # need to explicitly include na values or filter will automatically remove them
+  select(-starts_with("notes"), -starts_with("protocol"), -starts_with("emerg"), -starts_with("itero"))
+
+dsmall <- select(d, starts_with("buds"), starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("hei"), starts_with("length"), starts_with("stem"))
+
+d %>%
+  gather(key = "variable", value = "value", starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("hei"), starts_with("length"), starts_with("stem"), -site, -plot, -quad, -ind, na.rm = FALSE)
+
+herbm=melt(herb,id.vars=c("uniqueID", "site", "plot", "quad","ind"),measure.vars = c(grep("^flrs",names(herb),value = TRUE),grep("^buds",names(herb),value = TRUE),grep("^fruits",names(herb),value = TRUE), grep("^herb",names(herb),value = TRUE))) #changed data from wide to long format. measure.vars are counted in the value column.
+
+
+
+
+  
+
+
+
