@@ -60,14 +60,11 @@ d <- select(d, -X1) %>%
   filter(phen.1 != "D" | is.na(phen.1)) %>%
   # remove those that died before the first ever survey in 2017
   # need to explicitly include na values or filter will automatically remove them
-  select(-starts_with("notes"), -starts_with("protocol"), -starts_with("emerg"), -starts_with("itero"))
+  select(-starts_with("notes"), -starts_with("protocol"), -starts_with("emerg"), -starts_with("itero")) %>%
+  gather(key = "variable", value = "value", starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("height"), starts_with("length"), starts_with("stem"), -site, -plot, -quad, -ind, na.rm = FALSE) # changed data from wide to long format
 
-dsmall <- select(d, starts_with("buds"), starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("hei"), starts_with("length"), starts_with("stem"))
+#dsmall <- select(d, starts_with("buds"), starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("hei"), starts_with("length"), starts_with("stem"))
 
-d %>%
-  gather(key = "variable", value = "value", starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("hei"), starts_with("length"), starts_with("stem"), -site, -plot, -quad, -ind, na.rm = FALSE)
-
-herbm=melt(herb,id.vars=c("uniqueID", "site", "plot", "quad","ind"),measure.vars = c(grep("^flrs",names(herb),value = TRUE),grep("^buds",names(herb),value = TRUE),grep("^fruits",names(herb),value = TRUE), grep("^herb",names(herb),value = TRUE))) #changed data from wide to long format. measure.vars are counted in the value column.
 
 
 
