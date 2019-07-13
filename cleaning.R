@@ -60,16 +60,15 @@ d <- select(d, -X1) %>%
   filter(phen.1 != "D" | is.na(phen.1)) %>%
   # remove those that died before the first ever survey in 2017
   # need to explicitly include na values or filter will automatically remove them
-  select(-starts_with("notes"), -starts_with("protocol"), -starts_with("emerg"), -starts_with("itero")) %>%
-  gather(key = "variable", value = "value", starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("height"), starts_with("length"), starts_with("stem"), -site, -plot, -quad, -ind, na.rm = FALSE) # changed data from wide to long format
+  select(-starts_with("notes"), -starts_with("protocol"), -starts_with("emerg"), -starts_with("itero"), -c(site_27.07.2018:ind_27.07.2018)) %>%
+  gather(key = "variable", value = "value", starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("height"), starts_with("length"), starts_with("stem"), starts_with("herb"), starts_with("total"), starts_with("canopy"), -site, -plot, -quad, -ind, na.rm = FALSE) # changed data from wide to long format
 
-#dsmall <- select(d, starts_with("buds"), starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("hei"), starts_with("length"), starts_with("stem"))
+# format dates correctly
 
+herbm$date <- sapply(strsplit(as.character(herbm$variable), split='_', fixed=TRUE), function(x) (x[2])) #somehow I think this turns i.e. "date.1" into "date_06-30-17", but not sure how
+herbm$date <- as.Date(herbm$date,"%d.%m.%Y") #tells R to recognize this column as dates, and what format the dates are in to begin with
+herbm$var <- sapply(strsplit(as.character(herbm$variable), split='_', fixed=TRUE), function(x) (x[1])) #making a vector of the "_flrs" (or buds, fruits) portion of the "date_flrs" column and splitting by the "_"
+herbm$var=as.factor(herbm$var) #now, putting the vector into its own column, called "repro"
 
-
-
-
-  
-
-
+herbm$value2=as.numeric(herbm$value)
 
