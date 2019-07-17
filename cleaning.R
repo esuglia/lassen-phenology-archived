@@ -7,6 +7,8 @@
 
 library(tidyverse)
 library(stringr)
+library(lubridate)
+library(dplyr)
 
 # read in 2017 and 2018 data files and do a little cleaning before joining
 #d17 <- read_csv("d17.csv")
@@ -51,24 +53,67 @@ library(stringr)
 d <- read_csv("lassen-phen.csv")
 
 # clean up final data file a bit
-d <- select(d, -X1) %>%
+d <- d %>%
+  select (-X1) %>%
   separate(uniqueID, sep = " ", into = c("site", "plot", "quad", "ind")) %>% # deconcatenate uniqueID column into site, plot, quad, individual
   mutate(ind = str_remove_all(ind, "#")) %>% # remove "#" from individual numbers in ind column
   mutate(quad = str_remove_all(quad, "Q")) %>%
   mutate(plot = str_remove_all(plot, "P")) %>%
-  rename("itero.per.17" = "itero.per?") %>%
   filter(phen.1 != "D" | is.na(phen.1)) %>%
   # remove those that died before the first ever survey in 2017
   # need to explicitly include na values or filter will automatically remove them
-  select(-starts_with("notes"), -starts_with("protocol"), -starts_with("emerg"), -starts_with("itero"), -c(site_27.07.2018:ind_27.07.2018)) %>%
-  gather(key = "variable", value = "value", starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("height"), starts_with("length"), starts_with("stem"), starts_with("herb"), starts_with("total"), starts_with("canopy"), -site, -plot, -quad, -ind, na.rm = FALSE) # changed data from wide to long format
+  select(-starts_with("notes"), -starts_with("protocol"), -starts_with("emerg"), -starts_with("itero"), -starts_with("date"), -c(site_27.07.2018:ind_27.07.2018)) %>%
+  gather(key = "variable", value = "value", starts_with("buds"), starts_with("fruits"), starts_with("flrs"), starts_with("phen"), starts_with("date"), starts_with("longest"), starts_with("height"), starts_with("length"), starts_with("stem"), starts_with("herb"), starts_with("total"), starts_with("canopy"), -site, -plot, -quad, -ind, na.rm = FALSE) %>% # changed data from wide to long format
+  #
+  mutate(variable = str_replace_all(variable, "canopy.width.largest.rosette", "canopywidth")) %>%
+  mutate(variable = str_replace_all(variable, "canopy.width", "canopywidth")) %>%
+  mutate(variable = str_replace_all(variable, "longest.leaf", "longestleaf")) %>%
+  mutate(variable = str_replace_all(variable, "total.branch", "totalbranch")) %>%
+  mutate(variable = str_replace_all(variable, "stem.diam", "stemdiam")) %>%
+  mutate(variable = str_replace_all(variable, "longest.fruit", "longestfruit")) %>%
 
-# format dates correctly
+# format variables and dates into their own tidy columns
+# IMPORTANT NOTE: here, I am giving each trip a date that represents all the data points taken on that trip. I use the first day on which I collected during a given trip. Most trips took 2 days, but there is a span of 1-4 days per trip. In future analyses it is probably worth using the actual day on which data was collected. To do so, don't remove columns in above pipeline that start with date. 
+
+  separate(variable, sep = "_", into = c("variable", "date")) %>%
+  separate(variable, sep = "\\.", into = c("variable", "trip17")) %>% # need to use two back slashes before period to "escape" notation of "." by itself means "matches any character"
+  #
+  mutate(trip17 = str_replace_all(trip17, "1", "2017/08/08")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^2$", "2017/14/08")) %>% # need to indicate ^ at beginning at $ at end of the expression because if you don't anchor to indicate the beginning and end, it will find every number 2 within other character strings (like in 2017) and replace those as well
+  mutate(trip17 = str_replace_all(trip17, "^3$", "2017/21/08")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^4$", "2017/28/08")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^5$", "2017/01/09")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^6$", "2017/11/09")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^7$", "2017/18/09")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^8$", "2017/30/09")) %>%
+  #
+  unite(variable, variable, trip17, sep = "_") %>%
+  unite(variable_date, variable, date, sep = "_") %>%
+  mutate(variable_date = str_remove_all(variable_date, "_NA")) %>%
+  separate(variable_date, sep = "_", into = c("variable", "date")) %>%
+  mutate(date = str_replace_all(date, "\\.", "/")) %>% # make date formatting across years consistent
+  makedate() # change dates to Julian days
+  
+# may be worth making a function to convert to Julian day
+#require(lubridate)
+#x = as.Date('2010-06-10')
+#yday(x)
+ 
+# check to make sure everything went smoothly
+dnames = unique(d$variable)
+ddates = unique(d$date)
+dvalues = unique(d$value)
+
 
 herbm$date <- sapply(strsplit(as.character(herbm$variable), split='_', fixed=TRUE), function(x) (x[2])) #somehow I think this turns i.e. "date.1" into "date_06-30-17", but not sure how
 herbm$date <- as.Date(herbm$date,"%d.%m.%Y") #tells R to recognize this column as dates, and what format the dates are in to begin with
 herbm$var <- sapply(strsplit(as.character(herbm$variable), split='_', fixed=TRUE), function(x) (x[1])) #making a vector of the "_flrs" (or buds, fruits) portion of the "date_flrs" column and splitting by the "_"
 herbm$var=as.factor(herbm$var) #now, putting the vector into its own column, called "repro"
-
 herbm$value2=as.numeric(herbm$value)
+
+
+
+
+
+
 
