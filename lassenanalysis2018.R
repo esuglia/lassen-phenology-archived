@@ -421,10 +421,12 @@ ggplot(data = df18cfruitdate) +
 
 ########  Max flowering (all individuals) #########
 
-maxflrdate = ddply(df18c,.(site, plot, melt_date, uniqueID), summarise,
-                       maxflr = max(date[is.na(flrs)==FALSE]))
+# THIS CODE WILL NOT PRODUCE THE DESIRED RESULT! IT'S LOOKING AT THE MAX DATE, NOT MAX FLOWERING
 
-maxflrdate = maxflrdate %>% drop_na(melt_date)
+#maxflrdate = ddply(df18c,.(site, plot, melt_date, uniqueID), summarise,
+                       #maxflr = max(date[is.na(flrs)==FALSE]))
+
+#maxflrdate = maxflrdate %>% drop_na(melt_date)
 
 
 # same issue as previously - can't figure out how to drop NAs

@@ -1,14 +1,14 @@
 #### Lassen field work 2017-2018 ####
 
-#### Cleaning ####
-
-# see metadata file for file names and meanings
-# used herb2017data_preclean_1.28.19.csv as raw file for analysis because it includes notes and a column for herbivory
-
 library(tidyverse)
 library(stringr)
 library(lubridate)
 library(dplyr)
+
+# Creating master data file ----
+
+# see metadata file for file names and meanings
+# used herb2017data_preclean_1.28.19.csv as raw file for analysis because it includes notes and a column for herbivory
 
 # read in 2017 and 2018 data files and do a little cleaning before joining
 #d17 <- read_csv("d17.csv")
@@ -48,14 +48,15 @@ library(dplyr)
 
 #write.csv(d, "lassen-phen.csv")
 
-#### Analysis ####
+
+# Cleaning ----
 
 d <- read_csv("lassen-phen.csv")
 
 # clean up final data file a bit
 d <- d %>%
   select (-X1) %>%
-  separate(uniqueID, sep = " ", into = c("site", "plot", "quad", "ind")) %>% # deconcatenate uniqueID column into site, plot, quad, individual
+  separate(uniqueID, sep = " ", into = c("site", "plot", "quad", "ind"), remove = FALSE) %>% # deconcatenate uniqueID column into site, plot, quad, individual
   mutate(ind = str_remove_all(ind, "#")) %>% # remove "#" from individual numbers in ind column
   mutate(quad = str_remove_all(quad, "Q")) %>%
   mutate(plot = str_remove_all(plot, "P")) %>%
@@ -71,48 +72,139 @@ d <- d %>%
   mutate(variable = str_replace_all(variable, "total.branch", "totalbranch")) %>%
   mutate(variable = str_replace_all(variable, "stem.diam", "stemdiam")) %>%
   mutate(variable = str_replace_all(variable, "longest.fruit", "longestfruit")) %>%
-
+  
 # format variables and dates into their own tidy columns
 # IMPORTANT NOTE: here, I am giving each trip a date that represents all the data points taken on that trip. I use the first day on which I collected during a given trip. Most trips took 2 days, but there is a span of 1-4 days per trip. In future analyses it is probably worth using the actual day on which data was collected. To do so, don't remove columns in above pipeline that start with date. 
 
   separate(variable, sep = "_", into = c("variable", "date")) %>%
   separate(variable, sep = "\\.", into = c("variable", "trip17")) %>% # need to use two back slashes before period to "escape" notation of "." by itself means "matches any character"
   #
-  mutate(trip17 = str_replace_all(trip17, "1", "2017/08/08")) %>%
-  mutate(trip17 = str_replace_all(trip17, "^2$", "2017/14/08")) %>% # need to indicate ^ at beginning at $ at end of the expression because if you don't anchor to indicate the beginning and end, it will find every number 2 within other character strings (like in 2017) and replace those as well
-  mutate(trip17 = str_replace_all(trip17, "^3$", "2017/21/08")) %>%
-  mutate(trip17 = str_replace_all(trip17, "^4$", "2017/28/08")) %>%
-  mutate(trip17 = str_replace_all(trip17, "^5$", "2017/01/09")) %>%
-  mutate(trip17 = str_replace_all(trip17, "^6$", "2017/11/09")) %>%
-  mutate(trip17 = str_replace_all(trip17, "^7$", "2017/18/09")) %>%
-  mutate(trip17 = str_replace_all(trip17, "^8$", "2017/30/09")) %>%
+  mutate(trip17 = str_replace_all(trip17, "1", "08/08/2017")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^2$", "14/08/2017")) %>% # need to indicate ^ at beginning at $ at end of the expression because if you don't anchor to indicate the beginning and end, it will find every number 2 within other character strings (like in 2017) and replace those as well
+  mutate(trip17 = str_replace_all(trip17, "^3$", "21/08/2017")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^4$", "28/08/2017")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^5$", "01/09/2017")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^6$", "11/09/2017")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^7$", "18/09/2017")) %>%
+  mutate(trip17 = str_replace_all(trip17, "^8$", "30/09/2017")) %>%
   #
   unite(variable, variable, trip17, sep = "_") %>%
   unite(variable_date, variable, date, sep = "_") %>%
   mutate(variable_date = str_remove_all(variable_date, "_NA")) %>%
   separate(variable_date, sep = "_", into = c("variable", "date")) %>%
   mutate(date = str_replace_all(date, "\\.", "/")) %>% # make date formatting across years consistent
-  makedate() # change dates to Julian days
-  
-# may be worth making a function to convert to Julian day
-#require(lubridate)
-#x = as.Date('2010-06-10')
-#yday(x)
- 
+  mutate(date = dmy(date)) %>% # tell R to recognize as a date
+  mutate(jday = yday(date)) %>% # format date as Julian day
+  mutate(year = year(date)) %>%
+  as_tibble(d) %>% # reformat data frame as a tibble 
+  mutate (meltdate = case_when(
+    year == 2018 & site == "LVTR2.5" ~ "NA",
+    year == 2018 & site == "LVTR2" ~ "2018-06-01",
+    year == 2018 & site == "LVTR1" ~ "2018-06-01",
+    year == 2018 & site == "LV1" ~ "2018-06-20",
+    year == 2018 & site == "LV2" & plot == 1 ~ "2018-05-29",
+    year == 2018 & site == "LV2" & plot == 2 ~ "2018-05-21",
+    year == 2018 & site == "LV3" & plot == 1 ~ "2018-05-17",
+    year == 2018 & site == "LV3" & plot == 1.5 ~ "2018-05-03")) %>% # add a column for snowmelt date
+  mutate(meltdate = ymd(meltdate)) %>% # tell R to recognize this column as a date
+  mutate(meltdate = yday(meltdate)) # convert snowmelt dates to Julian Days
+
+# used dcast to convert to wide format; go back and figure out how to convert to tidyverse later (spread?)
+
+# d1 <- d %>%
+# spread(key = variable, value = value)
+
+dm = d # store "melted" version of dataframe (tidy tibble)
+
 # check to make sure everything went smoothly
 dnames = unique(d$variable)
 ddates = unique(d$date)
 dvalues = unique(d$value)
 
-
-herbm$date <- sapply(strsplit(as.character(herbm$variable), split='_', fixed=TRUE), function(x) (x[2])) #somehow I think this turns i.e. "date.1" into "date_06-30-17", but not sure how
-herbm$date <- as.Date(herbm$date,"%d.%m.%Y") #tells R to recognize this column as dates, and what format the dates are in to begin with
-herbm$var <- sapply(strsplit(as.character(herbm$variable), split='_', fixed=TRUE), function(x) (x[1])) #making a vector of the "_flrs" (or buds, fruits) portion of the "date_flrs" column and splitting by the "_"
-herbm$var=as.factor(herbm$var) #now, putting the vector into its own column, called "repro"
-herbm$value2=as.numeric(herbm$value)
+# do I want to have r recognize each row as a certain format?
+#d$variable=as.factor(d$variable)
+#d$value=as.numeric(d$value)
 
 
+# Casting to wide format and cleaning individual columns ----
 
+# remove all rows for which ind = NA, "GONE;", or "V"
+# if the above doesn't solve this issue, remove uniqueID = LV3 P2 QALL GONE; BANK ERODED AWAY #NA
+
+library(reshape2)
+d1 = as_tibble(dcast(d, uniqueID + site + plot + quad + ind + year + jday + meltdate ~ variable, value.var = "value", fun.aggregate = max)) %>%
+  # get rid of some annoying values in the flrs column
+    mutate(flrs = na_if(flrs, "no.plant")) %>% 
+    mutate(flrs = na_if(flrs, "NO.PLANT")) %>%
+    mutate(flrs = na_if(flrs, "^0$")) %>%
+    mutate(flrs = na_if(flrs, "?")) %>%
+    filter(ind != "V") %>%
+    filter(ind != "GONE;")
+
+# Phenology over time (2017 and 2018; visualizations only) ----
+
+## flowering phenology
+# I MISSED FIRST FLOWERING TIME FOR SEVERAL POPS; MAY BE BETTER TO COMPARE USING PEAK FLOWERING TIME
+    flr = d1 %>% 
+      drop_na(flrs) %>% # to do a summarize, can't have NAs in column
+      group_by(site, plot, year, uniqueID) %>% 
+      summarise(
+      firstflr = min(jday[is.na(flrs) == FALSE]),
+      lastflr = max(jday[is.na(flrs) == FALSE])
+      # peakflr = jday[which(flrs == max(flrs))] - not working
+      )
+    
+    # graph: first vs last flowering time
+    ggplot(data = flr, mapping = aes(firstflr, lastflr, color = site)) +
+    #geom_point()
+    facet_wrap(~year) +
+    geom_jitter()
+  
+    #graph: first flowering time (histogram)
+    ggplot(data = flr, mapping = aes(firstflr, fill = site)) +
+    facet_wrap(~year) +
+    geom_histogram()
+    # is there a better way to visualize this?
+    
+    #graph: last flowering time (histogram)
+    ggplot(data = flr, mapping = aes(lastflr, fill = site)) +
+    facet_wrap(~year) +
+    geom_histogram()
+
+# Snowmelt ~ phenology (2018 only) ----
+
+## flowering phenology
+    flrsnow = d1 %>% 
+      drop_na(meltdate) %>%
+      drop_na(flrs) %>% # to do a summarize, can't have NAs in column
+      group_by(site, plot, meltdate, uniqueID) %>% 
+      summarise(
+        firstflr = min(jday[is.na(flrs) == FALSE]),
+        lastflr = max(jday[is.na(flrs) == FALSE])
+        # peakflr = jday[which(flrs == max(flrs))] - not working
+        )
+
+    # graph
+    ggplot(data = flrsnow, mapping = aes(meltdate, firstflr, color = site)) +
+      geom_point()
+      #geom_jitter()
+    
+    ggplot(data = flrsnow, mapping = aes(meltdate, lastflr, color = site)) +
+      #geom_point()
+      geom_jitter()
+    
+    # anova
+    firstflrlm = lm(meltdate ~ firstflr, data = flrsnow)
+    summary(firstflrlm)
+    anova(firstflrlm)
+    # later snowmelt significantly delays first flowering 
+
+    lastflrlm = lm(meltdate ~ lastflr, data = flrsnow)
+    summary(lastflrlm)
+    anova(lastflrlm)    
+    # later snowmelt significantly delays last flowering, but to a lesser degree than it delays first flowering. Implies there must be some mechanism for plants to "catch up", OR that flowering just has a hard end date beyond which the plant can't produce more (late season drought?)
+    
+## 
 
 
 
