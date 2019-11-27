@@ -42,13 +42,8 @@ ggplot(phenm,aes(x=date,y=value,group=repro,color=repro)) +
 
 
 
-###### Work done starting 2/18/2019 ######
-
-
-
-
+# Work done starting 2/18/2019
 #### Master data file: cleaning and formatting ####
-
 
 ## Adding even-numbered trips to master datasheet ###
 #First, I entered data for odd-numbered trips (1, 3, 5, & 7) to do the above data analysis
@@ -172,7 +167,7 @@ df18cr$fruits[is.na(df18cr$fruits)] <- 0
 df18cr$flrs[is.na(df18cr$flrs)] <- 0
 df18cr$buds[is.na(df18cr$buds)] <- 0
 
-#### Using repro only, plot individuals' # flrs over time ####
+    #### Using repro only, plot individuals' # flrs over time ####
 
 ggplot(data = df18cr) +
   geom_point(mapping = aes(x=date, y=flrs, group = uniqueID, color = site)) +
@@ -298,7 +293,7 @@ fecundherb = ddply(df18cr,.(site, plot, melt_date, uniqueID), summarise,
                  perc2 = sum(type2herb)/plottotal,
                  fecundity = max(fruits))
 
-###### Max fruit time #######
+    ###### Max fruit time #######
 
 df18c$fruits[df18c$fruits == 0] = NA
 
@@ -367,7 +362,7 @@ df18cflrdate$Jfirstflr <- as.POSIXlt(df18cflrdate$firstflr, format="%d_%m_%Y")$y
 
 df18cflrdate$Jmelt_date <- as.POSIXlt(df18cflrdate$melt_date, format="%d_%m_%Y")$yday
 
-###### Linear models for first flowering date (all inds) #####
+    ###### Linear models for first flowering date (all inds) #####
 
 # Something weird here - can I use dates as formatted, or do I need Julian dates?
 meanflrmodel = lm(Jmelt_date ~ Jmeanflr, data=meanfirstflr)
@@ -459,7 +454,7 @@ indmaxmodel = lm(melt_date ~ maxflr, data=maxflrdate)
 summary(indmaxmodel)
 
 ##### General plotting with all individuals #####
-## Didn't really get anywhere with this yet
+    ## Didn't really get anywhere with this yet
 
 ggplot(data = df18c) +
   geom_point(mapping = aes(x=date, y=flrs, group = ind, color=ind)) +
@@ -476,13 +471,8 @@ stat_summary(fun.y=mean, geom="line") + #plotting the means with points
   stat_summary(fun.y=mean, geom="point") + #plotting the means as a line graph
   facet_wrap(~site)
 
-
-##-----------------------------------------------------------------
-
-
-
 ###### HERBIVORIZED INDIVIDUALS ONLY #######
-### Formatting ###
+### Formatting ----
 
 #Remove all individuals that were not herbivorized
 

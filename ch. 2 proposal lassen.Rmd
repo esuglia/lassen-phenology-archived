@@ -1,0 +1,78 @@
+---
+title: "Ch. 2 Lassen proposal draft"
+author: "Elena Suglia"
+date: "11/12/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r echo = FALSE, message = FALSE}
+setwd("~/Box Sync/Graduate School/PhD Research/Lassen Snowmelt & Phenology/Data analysis/lassen-phenology/data cleaning")
+
+library(wesanderson)
+library(RColorBrewer)
+library(tidyverse)
+library(stringr)
+library(lubridate)
+library(dplyr)
+library(cowplot)
+library(reshape2)
+library(scales)
+library(vistime)
+library(directlabels)
+library(export)
+library(gridExtra)
+
+d1 = read.csv("d1.csv", header = TRUE)
+
+# *FOR POSTER* snowmelt ~ flowering phenology ----
+flrsnow = read.csv("flrsnow.csv")
+flrsnow$variable <- factor(flrsnow$variable, levels = c("peakflr", "lastflr"))
+
+    # graph: individual meltdate ~ peak, and last flowering time
+flrsnow18 = flrsnow %>%
+  subset(year == 2018)
+
+flrsnow19 = flrsnow %>%
+  subset(year == 2019)
+
+ggplot(data = flrsnow18, mapping = aes(meltdate, value, color = variable)) +
+  ggtitle("2018 Snowmelt date vs flowering phenology") +
+  xlab("Snowmelt Date") +
+  ylab("Flowering Phenology Date") +
+  scale_color_brewer(name="Flowering\nPhenology\nMetric",
+                     palette = "Dark2",
+                     labels=c("Peak Flowering", "Last Flowering")) +
+  geom_smooth(method = lm) +
+  geom_jitter(data = flrsnow18, mapping = aes(meltdate, value, color = variable, alpha = 0.1), na.rm=TRUE)
+
+ggplot(data = flrsnow19, mapping = aes(meltdate, value, color = variable)) +
+        ggtitle("2019 Snowmelt date vs flowering phenology") +
+        xlab("Snowmelt Date") +
+        ylab("Flowering Phenology Date") +
+        scale_color_brewer(name="Flowering\nPhenology\nMetric",
+          palette = "Dark2",
+          labels=c("Peak Flowering", "Last Flowering")) +
+       theme(legend.title = element_text(size=15),
+             #legend.text = element_text(size = 12),
+             #axis.text = element_text(size = 14),
+             #axis.title = element_text(size = 14),
+             #plot.title = element_text(size = 18),
+             axis.line = element_line(colour = "black"),
+             panel.grid.major = element_blank(),
+             panel.grid.minor = element_blank(),
+             panel.border = element_blank(),
+             panel.background = element_blank()) +
+        geom_smooth(method = lm) +
+        geom_jitter(data = flrsnow19, mapping = aes(meltdate, value, color = variable, alpha = 0.1), na.rm=TRUE)
+
+  
+#require(gridExtra)
+#grid.arrange(plotflrsnow18, plotflrsnow19, nrow=2)
+```
+
+    
