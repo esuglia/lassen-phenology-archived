@@ -1,3 +1,5 @@
+## Plots for Ch. 2 Lassen Phenology
+## Elena Suglia
 
 # Libraries ----
 library(wesanderson)
@@ -16,30 +18,10 @@ library(stringr)
 library(lubridate)
 library(dplyr)
 
+setwd("~/Box Sync/Graduate School/PhD Research/Ch. 2) Lassen Snowmelt & Phenology/Data analysis/lassen-phenology")
+source("cleaning.R")
 
 # Study system graphs ----
-
-# *** Variability in snowpack across years & sites
-
-setwd("~/Box Sync/Graduate School/PhD Research/Ch. 2) Lassen Snowmelt & Phenology/Data analysis/lassen-phenology")
-load("cleaning1.R")
-
-snowvar = d1 %>%
-  subset(year %in% 2018:2019) %>%
-  group_by(site, meltdate, jmeltdate, jday, year) %>%
-  summarize(meanmelt = mean(meltdate)) %>%
-  drop_na(meltdate) %>%
-  select(-meanmelt)
-
-ggplot(data = snowvar, mapping = aes(jday, jmeltdate, group = site)) +
-  geom_point() +
-  geom_line()
-
-# create a dataframe that replaces NAs with zeros in buds, flrs, and fruits columns
-d2 <- d1 %>%
-  mutate(flrs = replace_na(flrs, 0)) %>%
-  mutate(fruits = replace_na(fruits, 0)) %>%
-  mutate(buds = replace_na(buds, 0))
 
 # Phenology over time (visualizations only) ----
 
@@ -54,7 +36,6 @@ ggplot(data = d1, mapping = aes(jday, fruits, color = site)) +
   geom_count() +
   facet_wrap(~year)
 
-# I MISSED FIRST FLOWERING TIME FOR SEVERAL POPS; MAY BE BETTER TO COMPARE USING PEAK FLOWERING TIME
 flr = d1 %>% 
   drop_na(flrs) %>% # to do a summarize, can't have NAs in column
   group_by(site, plot, year, uniqueID) %>% 
@@ -66,10 +47,7 @@ flr = d1 %>%
     peakflr = min(jday[which(flrs == max(flrs))]) # if there are multiple days that have the same max value, need to specify one of those
   )
 
-# fitness ~ peakflr stats & graph ----
-flrlm = lm(fitness ~ peakflr, data = flr)
-summary(flrlm)
-anova(flrlm)
+# fitness ~ peakflr graph ----
 ggplot(data = flr, mapping = aes(peakflr, fitness)) +
   geom_smooth(method = lm)
 
@@ -296,6 +274,20 @@ popsumflr %>% subset(year == 2018) %>%
 #dherb = d1 %>%
 #  full_join(herb, by = "uniqueID")
 
+# create a df where all LVTR sites are in one pop
+d2 = d1 %>%
+  mutate(pop = case_when(
+    site == "LVTR2.5" ~ "LVTR",
+    site == "LVTR2.25" ~ "LVTR",
+    site == "LVTR2" ~ "LVTR",
+    site == "LVTR1.25" ~ "LVTR",
+    site == "LVTR1.5" ~ "LVTR",
+    site == "LVTR1.75" ~ "LVTR",
+    site == "LVTR1" ~ "LVTR",
+    site == "LV1" ~ "LV1",
+    site == "LV2" ~ "LV2",
+    site == "LV3" ~ "LV3",))
+
 # create a tibble that summarizes number of reproductive individuals in a population on each date in each year
 repro = d2 %>%
   drop_na(flrs) %>%
@@ -317,19 +309,6 @@ repro = d2 %>%
   distinct() # removes duplicate rows
 
 # create a tibble that summarizes numer of flowering individuals per site on each date in each year
-d2 = d1 %>%
-  mutate(pop = case_when(
-    site == "LVTR2.5" ~ "LVTR",
-    site == "LVTR2.25" ~ "LVTR",
-    site == "LVTR2" ~ "LVTR",
-    site == "LVTR1.25" ~ "LVTR",
-    site == "LVTR1.5" ~ "LVTR",
-    site == "LVTR1.75" ~ "LVTR",
-    site == "LVTR1" ~ "LVTR",
-    site == "LV1" ~ "LV1",
-    site == "LV2" ~ "LV2",
-    site == "LV3" ~ "LV3",))
-
 d3 = d2 %>%
   drop_na(flrs) %>%
   drop_na(jmeltdate) %>%
@@ -548,13 +527,7 @@ ggplot(data = fruits, mapping = aes(branchiness, fitness)) +
   geom_smooth() +
   geom_count()
 #geom_smooth()
-# it appears that branchiness does affect fitness. Let's do an anova:
-
-# anova
-branchfitnesslm = lm(fitness ~ branchiness, data = fruits)
-summary(branchfitnesslm)
-anova(branchfitnesslm)
-# Those with more (max) total branches had significantly higher fecundity.
+# it appears that branchiness does affect fitness
 
 # Snowmelt timing ~ phenology (2018 & 2019 only) ----
 
@@ -686,98 +659,6 @@ ggplot(data = flrsnow0, mapping = aes(jmeltdate, lastflr, color = elevation)) +
   #geom_jitter()
   geom_count()
 
-# firstflr ~ jmeltdate model selection ----
-# firstflr ~ jmeltdate fixed model & anova
-firstflrlm = lm(firstflr ~ jmeltdate, data = flrsnow0)
-summary(firstflrlm)
-anova(firstflrlm)
-# later snowmelt significantly delays first flowering 
-
-m14 = lmer(firstflr ~ jmeltdate + (1|site), data = flrsnow0, REML = FALSE)
-m15 = lmer(firstflr ~ jmeltdate + (1 + jmeltdate|site), data = flrsnow0, REML = FALSE)
-m16 = lmer(firstflr ~ jmeltdate + (1|year), data = flrsnow0, REML = FALSE)
-m17 = lmer(firstflr ~ jmeltdate + (1|site) + (1|year), data = flrsnow0, REML = FALSE)
-m18 = lmer(firstflr ~ jmeltdate*year + (1|site), data = flrsnow0, REML = FALSE)
-m19 = lmer(firstflr ~ jmeltdate*site + (1|year), data = flrsnow0, REML = FALSE) # best fit
-m20 = lmer(firstflr ~ jmeltdate*site + (1|year) + (1|site), data = flrsnow0, REML = FALSE)
-m21 = lmer(firstflr ~ jmeltdate*site + (1 + site|year), data = flrsnow0, REML = FALSE)
-# some warning messages
-
-AIC(firstflrlm, m14, m15, m16, m17, m18, m19, m20, m21)
-AICc(firstflrlm, m14, m15, m16, m17, m18, m19, m20, m21)
-BIC(firstflrlm, m14, m15, m16, m17, m18, m19, m20, m21)
-
-r.squaredGLMM(m14)
-r.squaredGLMM(m15) 
-r.squaredGLMM(m16) 
-r.squaredGLMM(m17) 
-r.squaredGLMM(m18) 
-r.squaredGLMM(m19) 
-r.squaredGLMM(m20) 
-r.squaredGLMM(m21) 
-# including random effects does not necessarily appear to help
-# why are the last three identical? Ask Andrew about error messages
-
-# peakflr ~ jmeltdate model selection ----
-# peakflr ~ jmeltdate fixed effects model & anova
-peakflrlm = lm(peakflr ~ jmeltdate, data = flrsnow0)
-summary(peakflrlm)
-anova(peakflrlm)
-
-# mixed models for meltdate ~ peakflr
-m6 = lmer(peakflr ~ jmeltdate + (1|site), data = flrsnow0, REML = FALSE)
-m7 = lmer(peakflr ~ jmeltdate + (1 + jmeltdate|site), data = flrsnow0, REML = FALSE)
-m8 = lmer(peakflr ~ jmeltdate + (1|year), data = flrsnow0, REML = FALSE)
-m9 = lmer(peakflr ~ jmeltdate + (1|site) + (1|year), data = flrsnow0, REML = FALSE)
-m10 = lmer(peakflr ~ jmeltdate*year + (1|site), data = flrsnow0, REML = FALSE) # best fit
-m11 = lmer(peakflr ~ jmeltdate*site + (1|year), data = flrsnow0, REML = FALSE)
-m12 = lmer(peakflr ~ jmeltdate*site + (1|year) + (1|site), data = flrsnow0, REML = FALSE)
-m13 = lmer(peakflr ~ jmeltdate*site + (1 + site|year), data = flrsnow0, REML = FALSE)
-
-AIC(peakflrlm, m6, m7, m8, m9, m10, m11, m12, m13)
-AICc(peakflrlm, m6, m7, m8, m9, m10, m11, m12, m13)
-BIC(peakflrlm, m6, m7, m8, m9, m10, m11, m12, m13)
-
-r.squaredGLMM(m6)
-r.squaredGLMM(m7) 
-r.squaredGLMM(m8) 
-r.squaredGLMM(m9) 
-r.squaredGLMM(m10) 
-r.squaredGLMM(m11) 
-r.squaredGLMM(m12) 
-r.squaredGLMM(m13) 
-# including random effects improves all models
-
-# lastflr ~ jmeltdate model selection ----
-# lastflr ~ jmeltdate
-lastflrlm = lm(lastflr ~ jmeltdate, data = flrsnow0)
-summary(lastflrlm)
-anova(lastflrlm)    
-# later snowmelt significantly delays last flowering, but to a lesser degree than it delays first flowering. Implies there must be some mechanism for plants to "catch up", OR that flowering just has a hard end date beyond which the plant can't produce more (late season drought? (THIS MAY NOT BE TRUE ANYMORE ONCE 2019 DATA INCLUDED)
-
-# mixed models for meltdate ~ lastflr
-m22 = lmer(lastflr ~ jmeltdate + (1|site), data = flrsnow0, REML = FALSE)
-m23 = lmer(lastflr ~ jmeltdate + (1 + jmeltdate|site), data = flrsnow0, REML = FALSE)
-m24 = lmer(lastflr ~ jmeltdate + (1|year), data = flrsnow0, REML = FALSE)
-m25 = lmer(lastflr ~ jmeltdate + (1|site) + (1|year), data = flrsnow0, REML = FALSE)
-m26 = lmer(lastflr ~ jmeltdate*year + (1|site), data = flrsnow0, REML = FALSE) # best fit BIC
-m27 = lmer(lastflr ~ jmeltdate*site + (1|year), data = flrsnow0, REML = FALSE) # best fit AIC
-m28 = lmer(lastflr ~ jmeltdate*site + (1|year) + (1|site), data = flrsnow0, REML = FALSE)
-m29 = lmer(lastflr ~ jmeltdate*site + (1 + site|year), data = flrsnow0, REML = FALSE)
-
-AIC(lastflrlm, m22, m23, m24, m25, m26, m27, m28, m29)
-AICc(lastflrlm, m22, m23, m24, m25, m26, m27, m28, m29)
-BIC(lastflrlm, m22, m23, m24, m25, m26, m27, m28, m29)
-# BIC says model 26 is best
-
-r.squaredGLMM(m22)
-r.squaredGLMM(m23) 
-r.squaredGLMM(m24) 
-r.squaredGLMM(m25) 
-r.squaredGLMM(m26) 
-r.squaredGLMM(m27) 
-r.squaredGLMM(m28) 
-r.squaredGLMM(m29) 
 
 # population meltdate ~ peak and last flring time graph ----
 flrsnowpop = d1 %>% 
@@ -865,6 +746,7 @@ ggplot(data = flrsnow0, mapping = aes(x = elevation, y = peakflr, color = site))
 flrsnowpop1 = flrsnowpop %>%
   spread(variable, value)
 
+flrsnowpopmean$year = as.factor(flrsnowpopmean$year)
 ggplot(data = flrsnowpopmean, aes(x = elevation, y = jmeltdate, color = site, group = year)) +
   #facet_wrap(~year, ncol = 1) +
   geom_point(aes(shape = year), size = 4) +
@@ -887,13 +769,13 @@ ggplot(data = flrsnowpopmean, aes(x = elevation, y = jmeltdate, color = site, gr
 #coord_flip()
 
 # save graph as a ppt file in directory
-graph2ppt(file="elevation vs snowmelt date combined yrs.pptx", width = 9, height = 9, append=TRUE)
+
+#graph2ppt(file="elevation vs snowmelt date combined yrs.pptx", width = 9, height = 9, append=TRUE)
 
 # elevation vs temperature ----
 
 
 # *FOR POSTER*
-# anova
 
 #lvtrel = c(2853, 2845, 2808, 2773, 2761, 2756)
 #median(lvtrel) # 2790.5
@@ -918,13 +800,7 @@ ggplot(data = flrsnow0, aes(x = elevation, y = peakflr)) +
   xlab("Elevation") +
   ylab("Peak Flowering Date")
 
-graph2ppt(file="elevation vs peak flowering date.pptx", width = 9, height = 9, append=TRUE)
-
-
-elevpeakflrlm = lm(peakflr ~ elevation*year, data = flrsnow0)
-summary(elevpeakflrlm)
-anova(elevpeakflrlm)
-# not significant
+#graph2ppt(file="elevation vs peak flowering date.pptx", width = 9, height = 9, append=TRUE)
 
 # Snowmelt timing ~ fitness (2018 only) ----
 
@@ -943,7 +819,7 @@ fitnesssnow18 = fitnesssnow %>%
 fitnesssnow18plot = ggplot(data = fitnesssnow18, mapping = aes(meltdate, fitness)) +
   #facet_wrap(~year) +
   geom_smooth(method = lm) +
-  geom_jitter(aes(alpha = 0.2, group = site, color = elevation)) +
+  geom_jitter(aes(group = site, color = elevation), alpha = 0.2) +
   scale_color_continuous(low = "orange", high = "blue") +
   ggtitle("Snowmelt date vs fitness") +
   xlab("Snowmelt Date") +
@@ -964,7 +840,7 @@ fitnesssnow19 = fitnesssnow %>%
 fitnesssnow19plot = ggplot(data = fitnesssnow19, mapping = aes(meltdate, fitness)) +
   #facet_wrap(~year) +
   geom_smooth(method = lm) +
-  geom_jitter(aes(alpha = 0.2, group = site, color = elevation)) +
+  geom_jitter(aes(group = site, color = elevation), alpha = 0.2) +
   scale_color_continuous(low = "orange", high = "blue") +
   ggtitle("Snowmelt date vs fitness") +
   xlab("Snowmelt Date") +
@@ -982,46 +858,7 @@ fitnesssnow19plot = ggplot(data = fitnesssnow19, mapping = aes(meltdate, fitness
 
 require(grid)
 grid.arrange(fitnesssnow18plot, fitnesssnow19plot, nrow = 1)
-#graph2ppt(file="Snowmelt date vs fitness.pptx", width = 9, height = 9, append=TRUE)
-
-# Fitness ~ snowmelt statistical analyses ----
-
-# fixed effects model & anova
-fitnesssnowlm = lm(fitness ~ jmeltdate, data = fitnesssnow)
-summary(fitnesssnowlm)
-anova(fitnesssnowlm)
-# site is important. not sure how to interpret this result
-
-# mixed model
-m1 = lmer(fitness ~ jmeltdate + (1 + jmeltdate|year), data = fitnesssnow, REML = FALSE)
-m2 = lmer(fitness ~ jmeltdate + (1|site), data = fitnesssnow, REML = FALSE)
-m2.5 = lmer(fitness ~ jmeltdate + (1|jmeltdate), data = fitnesssnow, REML = FALSE)
-m3 = lmer(fitness ~ jmeltdate + (1|year), data = fitnesssnow, REML = FALSE)
-m4 = lmer(fitness ~ jmeltdate + (1 + jmeltdate|year) + (1|site), data = fitnesssnow, REML = FALSE)
-m5 = lmer(fitness ~ jmeltdate*year +  (1|site), data = fitnesssnow, REML=FALSE)
-
-display(m1)
-display(m2)
-AIC(fitnesssnowlm, m1, m2, m2.5, m3, m4, m5)
-AICc(fitnesssnowlm, m1, m2, m2.5, m3, m4, m5)
-BIC(fitnesssnowlm, m1, m2, m2.5, m3, m4, m5)
-
-# Do we include the random effects or not?
-# Notes for me from the help page:
-# The marginal R2 value represents the variance explained by the fixed effects, defined as: 
-# R_GLMM(m)² = (σ_f²) / (σ_f² + σ_α² + σ_ε²)
-# The conditional R2 value is interpreted as the variance explained by the entire model, including both fixed and random effects, and is calculated according to the equation: 
-# R_GLMM(c)² = (σ_f² + σ_α²) / (σ_f² + σ_α² + σ_ε²)
-# where σ_f² is the variance of the fixed effect components, σ_α² is the variance of the random effects, and σ_ε² is the “observation-level” variance.
-
-r.squaredGLMM(m1) # R2m        R2c
-# 0.0560748  0.1495234
-r.squaredGLMM(m2) 
-r.squaredGLMM(m2.5)
-r.squaredGLMM(m3) 
-r.squaredGLMM(m4) 
-r.squaredGLMM(m5) 
-# all models perform better when including random effects
+graph2ppt(file="Snowmelt date vs fitness 18&19w.el.pptx", width = 9, height = 9, append=TRUE)
 
 # Fitness ~ days from snowmelt to first flower (2018 -2019) ----
 
@@ -1060,12 +897,6 @@ ggplot(data = snowfirstflr, mapping = aes(snowtoflr, fitness)) +
 #geom_count()
 #geom_line()
 
-# anova
-snowfirstflrlm = lm(fitness ~ snowtoflr*year, data = snowfirstflr)
-summary(snowfirstflrlm)
-anova(snowfirstflrlm)
-# relationship between fitness and days from snowmelt to first flowering are totally dependent on year!
-
 # *** flowering duration ~ meltdate ----
 
 # graph of meltdate ~ flowering duration
@@ -1074,87 +905,76 @@ ggplot(data = snowfirstflr, mapping = aes(jmeltdate, flrduration)) +
   geom_smooth(method = lm)
 #geom_count()
 
-# anova of meltdate ~ flowering duration
-meltdatedurationlm = lm(flrduration ~ jmeltdate, data = snowfirstflr)
-summary(meltdatedurationlm)
-anova(meltdatedurationlm)
-# this is a pretty interesting result. Flowering duration is more influenced when snowmelt is later (or is it something else about that year?)
-
 # *** meltdate vs snowtoflr ----
 # graph
 ggplot(data = snowfirstflr, mapping = aes(jmeltdate, snowtoflr)) +
   facet_wrap(~year) +
   geom_smooth(method = lm)
 
-meltdatesnowtoflrlm = lm(snowtoflr ~ jmeltdate, data = snowfirstflr)
-summary(meltdatesnowtoflrlm)
-anova(meltdatesnowtoflrlm)
-AIC(meltdatesnowtoflrlm)
-# flower much faster when snow melts later. This could either be developmental (growth is faster in warmer temps) or due to anticipatory/photoperiod cuing to synchronize flowering with other plants.
-
 # Flowering duration ~ fitness (2017 & 2018) ----
 
 # use d2 so include zeros for #s of reproductive structures
 # start with just 2018
-phentimeline = d2 %>% 
-  drop_na(flrs) %>% # to do a summarize, can't have NAs in column
-  drop_na(fruits) %>%
-  group_by(site, plot, year, elevation, uniqueID) %>% 
-  summarise(
-    firstflr = min(jday[is.na(flrs) == FALSE & flrs > 0]),
-    lastflr = max(jday[is.na(flrs) == FALSE & flrs > 0]),
-    flrduration = lastflr - firstflr,
-    branchiness = max(totalbranch),
-    peakflr = median(jday[which(flrs == max(flrs))]),
-    fitness = max(fruits)
-  ) %>%
-  mutate(firstflr = na_if(firstflr, Inf)) %>%
-  mutate(firstflr = na_if(firstflr, -Inf)) %>%
-  mutate(peakflr = na_if(lastflr, Inf)) %>%
-  mutate(peakflr = na_if(lastflr, -Inf)) %>%
-  mutate(flrduration = na_if(flrduration, Inf)) %>%
-  mutate(flrduration = na_if(flrduration, -Inf)) %>%
-  drop_na(firstflr) %>%
-  drop_na(peakflr) %>%
-  drop_na(lastflr) %>%
-  unite(site_plot, site, plot, sep = "_", remove = FALSE) #%>%
-drop_na(flrduration) %>%
-  mutate(snowtoflr = firstflr - meltdate) %>%
-  drop_na(snowtoflr)
+#phentimeline = d1 %>% 
+#  drop_na(flrs) %>% # to do a summarize, can't have NAs in column
+#  drop_na(fruits) %>%
+#  group_by(site, plot, year, elevation, uniqueID) %>% 
+#  summarise(
+#    firstflr = min(jday[is.na(flrs) == FALSE & flrs > 0]),
+#    lastflr = max(jday[is.na(flrs) == FALSE & flrs > 0]),
+#    flrduration = lastflr - firstflr,
+#    branchiness = max(totalbranch),
+#    peakflr = median(jday[which(flrs == max(flrs))]),
+#    fitness = max(fruits)
+#  ) %>%
+#  mutate(firstflr = na_if(firstflr, Inf)) %>%
+#  mutate(firstflr = na_if(firstflr, -Inf)) %>%
+#  mutate(peakflr = na_if(lastflr, Inf)) %>%
+#  mutate(peakflr = na_if(lastflr, -Inf)) %>%
+#  mutate(flrduration = na_if(flrduration, Inf)) %>%
+#  mutate(flrduration = na_if(flrduration, -Inf)) %>%
+#  drop_na(firstflr) %>%
+#  drop_na(peakflr) %>%
+#  drop_na(lastflr) %>%
+#  unite(site_plot, site, plot, sep = "_", remove = FALSE) #%>%
+#drop_na(flrduration) %>%
+#  mutate(snowtoflr = firstflr - meltdate) %>%
+#  drop_na(snowtoflr)
 
 # *** visualizing flowering duration ----
 # timelineS is a useful package that creates timelines: https://www.rdocumentation.org/packages/timelineS/versions/0.1.1
 #install.packages("timelineS") 
-library("timelineS")
+
+#library("timelineS")
 
 ## All individuals
 
 # graph for sites (with all individuals included; firstflr here is the first time any individual flowered in the pop)
-timelineG(df = phentimeline, start = "firstflr", end = "lastflr", names = "site_plot", group1 = "year")
+#timelineG(df = phentimeline, start = "firstflr", end = "lastflr", names = "site_plot", group1 = "year")
 
 # graph across all individuals
-timelineG(df = phentimeline, start = "firstflr", end = "lastflr", names = "uniqueID", group1 = "site", group2 = "year")
+#timelineG(df = phentimeline, start = "firstflr", end = "lastflr", names = "uniqueID", group1 = "site", group2 = "year")
 
 # graph flring duration ~ fitness
 
-ggplot(data = phentimeline, mapping = aes(flrduration, fitness, color = site)) +
-  facet_wrap(~year) +
-  geom_count()
+#ggplot(data = phentimeline, mapping = aes(flrduration, fitness, color = site)) +
+#  facet_wrap(~year) +
+#  geom_count()
 #geom_line()
 #geom_smooth()
 
 # anova
-flrdurationfitnesslm = lm(flrduration ~ fitness, data = phentimeline)
-summary(flrdurationfitnesslm)
-anova(flrdurationfitnesslm)
+#flrdurationfitnesslm = lm(flrduration ~ fitness, data = phentimeline)
+#summary(flrdurationfitnesslm)
+#anova(flrdurationfitnesslm)
 # longer flowering duration significantly increases fitness
 
 
 ## Population-level means for flowering phenology metrics
 
 popsnowfirstflr = snowfirstflr %>% 
-  group_by(site, meltdate) %>% 
-  drop_na(meltdate) %>%
+  group_by(site, jmeltdate) %>% 
+  drop_na(jmeltdate) %>%
   summarise(
     firstflr = mean(firstflr),
     lastflr = mean(lastflr),
@@ -1164,31 +984,29 @@ popsnowfirstflr = snowfirstflr %>%
   )
 
 popsnowfirstflr <- popsnowfirstflr %>% 
-  mutate(snowtoflr = firstflr - meltdate) %>%
-  drop_na(meltdate)
+  mutate(snowtoflr = firstflr - jmeltdate) %>%
+  drop_na(jmeltdate)
 
 # population level timeline
 # include elevation later?
 # don't include meltdate yet
-popphentimeline = phentimeline %>% 
-  group_by(site, plot, year) %>% 
+#popphentimeline = phentimeline %>% 
+#  group_by(site, plot, year) %>% 
   #drop_na(meltdate) %>%
-  summarise(
-    firstflr = median(firstflr),
-    lastflr = median(lastflr),
-    peakflr = median(peakflr),
-    flrduration = median(lastflr - firstflr),
-    fitness = mean(fitness)
-  ) %>%
-  unite(site_plot, site, plot, sep = "_", remove = FALSE)
+#  summarise(
+#    firstflr = median(firstflr),
+#    lastflr = median(lastflr),
+#    peakflr = median(peakflr),
+#    flrduration = median(lastflr - firstflr),
+#    fitness = mean(fitness)
+#  ) %>%
+#  unite(site_plot, site, plot, sep = "_", remove = FALSE)
 
-popphentimeline <- popphentimeline %>% 
-  mutate(snowtoflr = firstflr - meltdate) %>%
-  drop_na(meltdate)
+#popphentimeline <- popphentimeline %>% 
+#  mutate(snowtoflr = firstflr - meltdate) %>%
+#  drop_na(meltdate)
 
-timelineG(df = popphentimeline, start = "firstflr", end = "lastflr", names = "site_plot", group1 = "year") 
-
-
+#timelineG(df = popphentimeline, start = "firstflr", end = "lastflr", names = "site_plot", group1 = "year") 
 
 # Herbivory ~ phenology ----
 
@@ -1216,11 +1034,6 @@ ggplot(data = herbphen, mapping = aes(herbpres, lastflr, color = site, group = s
   geom_smooth(method = lm) +
   facet_wrap(~year)
 
-# anova
-herbpreslastflrlm = lm(herbpres ~ lastflr, data = herbphen)
-summary(herbpreslastflrlm)
-anova(herbpreslastflrlm)
-
 # *** population level presence of herbivory ~ flowering phenology
 
 herbphenpop = herbphen %>% 
@@ -1247,12 +1060,6 @@ ggplot(data = herbphen, mapping = aes(herbpres, flrduration, color = site, group
   geom_smooth(method = lm) +
   facet_wrap(~year)
 
-# anova
-herbpresflrdurationlm = lm(herbpres ~ flrduration, data = herbphen)
-summary(herbpresflrdurationlm)
-anova(herbpresflrdurationlm)
-# lengthens flowering duration a little bit but not by much, and not significantly
-
 # Herbivory ~ fitness ----
 # *** presence of herbivory ~ fitness ----
 
@@ -1261,25 +1068,12 @@ ggplot(data = herbphen, mapping = aes(herbpres, fitness, color = site))     +
   geom_smooth(method = lm) +
   facet_wrap(~year)
 
-# anova
-herbphen18 = herbphen %>% filter(year == 2018)
-herbpresfitnesslm18 = lm(herbpres ~ fitness, data = herbphen18)
-summary(herbpresfitnesslm18)
-anova(herbpresfitnesslm18)
-# SUPER different results depending on the year. In 2017, herbivory depresses fitness, but in 2018, it increases it mostly because of LVTR2
-
 # *** timing of first herbivory ~ fitness ----
 
 # graph
 ggplot(data = herbphen, mapping = aes(firstherb, fitness, color = site))     +
   geom_count() +
   facet_wrap(~year)
-
-# anova
-firstherbfitnesslm = lm(firstherb ~ fitness + year, data = herbphen)
-summary(firstherbfitnesslm)
-anova(firstherbfitnesslm)
-# not sure how to interpret these stats
 
 # Snowmelt timing ~ herbivory (2018 only) ----
 
@@ -1306,8 +1100,8 @@ snowherb = d1 %>%
   mutate(lastflr = na_if(lastflr, Inf))
 
 
-snowherbpop = d1 %>% 
-  drop_na(flrs) %>% # to do a summarize, can't have NAs in column
+snowherbpop = d1 %>%
+  drop_na(flrs) %>%
   drop_na(fruits) %>%
   drop_na(jmeltdate) %>%
   group_by(site, plot, jmeltdate, elevation) %>% 
@@ -1321,12 +1115,10 @@ snowherbpop = d1 %>%
     herbpres = mean(anyherb), # will be 1 if herb; 0 if not
     firstherb = mean(min(jday[which(anyherb > 0)])),
     midherb = mean(median(jday[which(anyherb > 0)])) # median date of herbivory occurrence()
-    
-    # *FOR POSTER* snowmelt ~ presence of herbivory (NOT SIGNIFICANT) ----
-  ) %>%
-  mutate(firstherb = na_if(firstherb, Inf)) %>%
-  mutate(midherb = na_if(midherb, Inf)) %>%
-  drop_na(jmeltdate)
+) %>%
+    mutate(firstherb = na_if(firstherb, Inf)) %>%
+    mutate(midherb = na_if(midherb, Inf)) %>%
+    drop_na(jmeltdate)
 
 ggplot(data = snowherb, mapping = aes(jmeltdate, herbpres)) +
   ggtitle("Snowmelt date vs presence of herbivory") +
@@ -1347,45 +1139,10 @@ ggplot(data = snowherb, mapping = aes(jmeltdate, herbpres)) +
   geom_smooth(method = lm) +
   geom_count()
 
-graph2ppt(file="snowmelt vs presence of herbivory.pptx", width = 9, height = 9, append=TRUE)
-
-# anova
-## LOGISTIC REGRESSION FOR BINARY DATA
-snowherbpreslm = lm(jmeltdate ~ herbpres, data = snowherb)
-summary(snowherbpreslm)
-anova(snowherbpreslm)
-# meltdate does not affect likelihood of herbivory
+#graph2ppt(file="snowmelt vs presence of herbivory.pptx", width = 9, height = 9, append=TRUE)
 
 # *** snowmelt ~ firstherb ----
 
 # graph
 ggplot(data = snowherb, mapping = aes(jmeltdate, firstherb)) +
   geom_smooth()
-
-# anova
-snowfirstherblm = lm(jmeltdate ~ firstherb, data = snowherb)
-summary(snowfirstherblm)
-anova(snowfirstherblm)
-# later snowmelt significantly delays first occurrence of herbivory
-
-# *** snowmelt*firstherb ~ fitness ----
-
-# anova
-snowfirstherbfitnesslm = lm(jmeltdate*firstherb ~ fitness, data = snowherb)
-summary(snowfirstherbfitnesslm)
-anova(snowfirstherbfitnesslm)
-# no significant effects of interaction between snowmelt date and date of first herbivory occurrence on fitness (fecundity)
-
-# *** snowmelt*midherb ~ fitness ----
-
-# anova
-snowmidherbfitnesslm = lm(jmeltdate*midherb ~ fitness, data = snowherb)
-summary(snowmidherbfitnesslm)
-anova(snowmidherbfitnesslm)
-# no significant effects of interaction between snowmelt date and median date of herbivory occurrence on fitness (fecundity)
-
-# *** snowmelt*herbpres ~ fitness ----
-
-snowherbpresfitnesslm = lm(jmeltdate*herbpres ~ fitness, data = snowherb)
-summary(snowherbpresfitnesslm)
-anova(snowherbpresfitnesslm)

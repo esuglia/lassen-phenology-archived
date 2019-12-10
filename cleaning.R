@@ -1,5 +1,7 @@
-#### Lassen field work 2017-2019 ####
+## Cleaning data Ch. 2 Lassen Phenology
+## Elena Suglia
 
+# Libraries ----
 library(wesanderson)
 library(RColorBrewer)
 library(cowplot)
