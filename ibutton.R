@@ -92,6 +92,9 @@ mutate(plot = if_else(is.na(plot),
     plot)) %>%
 mutate(jday = yday(date)) %>%
 mutate(year = year(date)) %>%
+mutate(month = month(date)) %>%
+mutate(year_month = floor_date(date, "month")) %>%
+unite("month_year", month, year, sep = "_", remove = FALSE) %>%
   mutate(elevation =
   case_when(
     pop=="LVTR2.5" ~ 2853,
@@ -109,19 +112,87 @@ ggplot(ibutton, aes(date, temp, group = plot, color = plot)) +
   geom_line() +
   facet_wrap(~pop_plot)
 
-meantemp = ibutton %>%
-  group_by(year, pop, plot, site, elevation) %>%
+# at the plot level
+meantempplot = ibutton %>%
+  group_by(date, year_month, month, year, pop, plot, pop_plot) %>%
   summarize(
-    meantemp = mean(temp),
-    setemp = se(temp),
-    lowertemp = meantemp - setemp,
-    uppertemp = meantemp + setemp
-  )
+    maxdaily = max(temp),
+    mindaily = min(temp),
+    meandaily = mean(temp),
+    elevation = median(elevation)
+  ) %>%
+  group_by(year_month, month, year, pop, plot, site, elevation, pop_plot) %>%
+  summarize(
+    meanmaxdaily = mean(maxdaily),
+    semeanmaxdaily = se(maxdaily),
+    lowermeanmaxdaily = meanmaxdaily - semeanmaxdaily,
+    uppermeanmaxdaily = meanmaxdaily + semeanmaxdaily
+  ) %>%
+  drop_na(site)
 
-meantemp$year = as.factor(meantemp$year) # just doing this b/c can't map shape onto a continuous variable; really I just need to change the format of the dataframe
+# at the site level
+meantempsite = ibutton %>%
+  group_by(date, year_month, month, year, site) %>%
+  summarize(
+    elevation = median(elevation),
+    maxdaily = max(temp),
+    mindaily = min(temp),
+    meandaily = mean(temp)
+  ) %>%
+  group_by(year_month, month, year, site, elevation) %>%
+  summarize(
+    meanmaxdaily = mean(maxdaily),
+    semeanmaxdaily = se(maxdaily),
+    lowermeanmaxdaily = meanmaxdaily - semeanmaxdaily,
+    uppermeanmaxdaily = meanmaxdaily + semeanmaxdaily
+  ) %>%
+  drop_na(site)
 
-ggplot(meantemp, aes(elevation, meantemp, color = year)) +
-  geom_point( size = 4) + # aes(shape = plot),
-  geom_errorbar(aes(ymin = lowertemp, ymax = uppertemp))
+# the following code does something very strange to mismatch the sites with their elevations...
+#meantempsite$site=factor(meantemp$site,levels=c("LVTR", "LV1", "LV2", "LV3"))
+#meantempplot$site=factor(meantempplot$site,levels=c("LVTR", "LV1", "LV2", "LV3"))
 
+meantempplot$year = as.factor(meantempplot$year) # just doing this b/c can't map shape onto a continuous variable; really I just need to change the format of the dataframe
+#meantemp$month = as.factor(meantemp$month)
+1
+# colors = elevation
+tempelev = ggplot(meantempsite, aes(year_month, meanmaxdaily, group = site, color = elevation)) +
+  ggtitle ("Date vs maximum daily temperature averaged by month") +
+  ylab("Average mean max daily temp per month") +
+  xlab("Date") +
+  scale_color_continuous(low = "orange", high = "blue") +
+  #geom_smooth(se = FALSE) +
+  geom_line() +
+  geom_point(size = 3) + # aes(shape = plot),
+  geom_errorbar(aes(ymin = lowermeanmaxdaily, ymax = uppermeanmaxdaily), size = 0.5, width = 5)
+
+# colors = sites
+ggplot(meantempsite, aes(year_month, meanmaxdaily, group = site, color = site)) +
+  #scale_color_continuous() +
+  geom_smooth(se = FALSE) +
+  #geom_line() +
+  geom_point(size = 3) + # aes(shape = plot),
+  geom_errorbar(aes(ymin = lowermeanmaxdaily, ymax = uppermeanmaxdaily), size = 0.5, width = 5)
+
+# group = plot
+ggplot(meantempplot, aes(year_month, meanmaxdaily, group = pop_plot, color = pop_plot)) +
+  #facet_wrap(~site) +
+  #scale_color_continuous() +
+  #geom_smooth(se = FALSE) +
+  geom_line() +
+  geom_point(size = 3) + # aes(shape = plot),
+  geom_errorbar(aes(ymin = lowermeanmaxdaily, ymax = uppermeanmaxdaily), size = 0.5, width = 5)
+
+# all years in one plot
+monthvstemp = ggplot(meantempplot, aes(month, meanmaxdaily, group = year, color = year)) +
+  ggtitle ("Month of year vs maximum daily temperature averaged by month") +
+  ylab("Average mean max daily temp per month") +
+  xlab("Month") +
+  #facet_wrap(~site) +
+  #scale_color_continuous() +
+  geom_smooth(aes(group = year, color = year), se = FALSE) +
+  #geom_line() +
+  #geom_jitter() #+
+  geom_point(size = 3) + # aes(shape = plot),
+  geom_errorbar(aes(ymin = lowermeanmaxdaily, ymax = uppermeanmaxdaily), size = 0.2, width = 0.1)
 

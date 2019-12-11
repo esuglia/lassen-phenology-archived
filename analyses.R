@@ -26,19 +26,19 @@ source("plots.R")
 # peakflr ~ jmeltdate model selection ----
 
 # peakflr ~ jmeltdate fixed effects model & anova
-peakflrlm = lm(peakflr ~ jmeltdate, data = flrsnow0)
+peakflrlm = lm(peakflr ~ jmeltdate, data = i)
 summary(peakflrlm)
 anova(peakflrlm)
 
 # mixed models for peakflr ~ jmeltdate
-m6 = lmer(peakflr ~ jmeltdate + (1|site), data = flrsnow0, REML = FALSE)
-m7 = lmer(peakflr ~ jmeltdate + (1 + jmeltdate|site), data = flrsnow0, REML = FALSE)
-m8 = lmer(peakflr ~ jmeltdate + (1|year), data = flrsnow0, REML = FALSE)
-m9 = lmer(peakflr ~ jmeltdate + (1|site) + (1|year), data = flrsnow0, REML = FALSE)
-m10 = lmer(peakflr ~ jmeltdate*year + (1|site), data = flrsnow0, REML = FALSE) # best fit
-m11 = lmer(peakflr ~ jmeltdate*site + (1|year), data = flrsnow0, REML = FALSE)
-m12 = lmer(peakflr ~ jmeltdate*site + (1|year) + (1|site), data = flrsnow0, REML = FALSE)
-m13 = lmer(peakflr ~ jmeltdate*site + (1 + site|year), data = flrsnow0, REML = FALSE)
+m6 = lmer(peakflr ~ jmeltdate + (1|site), data = i, REML = FALSE)
+m7 = lmer(peakflr ~ jmeltdate + (1 + jmeltdate|site), data = i, REML = FALSE)
+m8 = lmer(peakflr ~ jmeltdate + (1|year), data = i, REML = FALSE)
+m9 = lmer(peakflr ~ jmeltdate + (1|site) + (1|year), data = i, REML = FALSE)
+m10 = lmer(peakflr ~ jmeltdate*year + (1|site), data = i, REML = FALSE) # best fit
+m11 = lmer(peakflr ~ jmeltdate*site + (1|year), data = i, REML = FALSE)
+m12 = lmer(peakflr ~ jmeltdate*site + (1|year) + (1|site), data = i, REML = FALSE)
+m13 = lmer(peakflr ~ jmeltdate*site + (1 + site|year), data = i, REML = FALSE)
 
 AIC(peakflrlm, m6, m7, m8, m9, m10, m11, m12, m13)
 AICc(peakflrlm, m6, m7, m8, m9, m10, m11, m12, m13)
@@ -57,19 +57,19 @@ r.squaredGLMM(m13)
 # firstflr ~ jmeltdate model selection ----
 
 # firstflr ~ jmeltdate fixed model & anova
-firstflrlm = lm(firstflr ~ jmeltdate, data = flrsnow0)
+firstflrlm = lm(firstflr ~ jmeltdate, data = i)
 summary(firstflrlm)
 anova(firstflrlm)
 # later snowmelt significantly delays first flowering 
 
-m14 = lmer(firstflr ~ jmeltdate + (1|site), data = flrsnow0, REML = FALSE)
-m15 = lmer(firstflr ~ jmeltdate + (1 + jmeltdate|site), data = flrsnow0, REML = FALSE)
-m16 = lmer(firstflr ~ jmeltdate + (1|year), data = flrsnow0, REML = FALSE)
-m17 = lmer(firstflr ~ jmeltdate + (1|site) + (1|year), data = flrsnow0, REML = FALSE)
-m18 = lmer(firstflr ~ jmeltdate*year + (1|site), data = flrsnow0, REML = FALSE)
-m19 = lmer(firstflr ~ jmeltdate*site + (1|year), data = flrsnow0, REML = FALSE) # best fit
-m20 = lmer(firstflr ~ jmeltdate*site + (1|year) + (1|site), data = flrsnow0, REML = FALSE)
-m21 = lmer(firstflr ~ jmeltdate*site + (1 + site|year), data = flrsnow0, REML = FALSE)
+m14 = lmer(firstflr ~ jmeltdate + (1|site), data = i, REML = FALSE)
+m15 = lmer(firstflr ~ jmeltdate + (1 + jmeltdate|site), data = i, REML = FALSE)
+m16 = lmer(firstflr ~ jmeltdate + (1|year), data = i, REML = FALSE)
+m17 = lmer(firstflr ~ jmeltdate + (1|site) + (1|year), data = i, REML = FALSE)
+m18 = lmer(firstflr ~ jmeltdate*year + (1|site), data = i, REML = FALSE)
+m19 = lmer(firstflr ~ jmeltdate*site + (1|year), data = i, REML = FALSE) # best fit
+m20 = lmer(firstflr ~ jmeltdate*site + (1|year) + (1|site), data = i, REML = FALSE)
+m21 = lmer(firstflr ~ jmeltdate*site + (1 + site|year), data = i, REML = FALSE)
 # some warning messages
 
 AIC(firstflrlm, m14, m15, m16, m17, m18, m19, m20, m21)
@@ -92,20 +92,20 @@ r.squaredGLMM(m21)
 # lastflr ~ jmeltdate model selection ----
 
 # lastflr ~ jmeltdate fixed effects model
-lastflrlm = lm(lastflr ~ jmeltdate, data = flrsnow0)
+lastflrlm = lm(lastflr ~ jmeltdate, data = i)
 summary(lastflrlm)
 anova(lastflrlm)    
 # later snowmelt significantly delays last flowering, but to a lesser degree than it delays first flowering. Implies there must be some mechanism for plants to "catch up", OR that flowering just has a hard end date beyond which the plant can't produce more (late season drought? (THIS MAY NOT BE TRUE ANYMORE ONCE 2019 DATA INCLUDED)
 
 # mixed models for meltdate ~ lastflr
-m22 = lmer(lastflr ~ jmeltdate + (1|site), data = flrsnow0, REML = FALSE)
-m23 = lmer(lastflr ~ jmeltdate + (1 + jmeltdate|site), data = flrsnow0, REML = FALSE)
-m24 = lmer(lastflr ~ jmeltdate + (1|year), data = flrsnow0, REML = FALSE)
-m25 = lmer(lastflr ~ jmeltdate + (1|site) + (1|year), data = flrsnow0, REML = FALSE)
-m26 = lmer(lastflr ~ jmeltdate*year + (1|site), data = flrsnow0, REML = FALSE) # best fit BIC
-m27 = lmer(lastflr ~ jmeltdate*site + (1|year), data = flrsnow0, REML = FALSE) # best fit AIC
-m28 = lmer(lastflr ~ jmeltdate*site + (1|year) + (1|site), data = flrsnow0, REML = FALSE)
-m29 = lmer(lastflr ~ jmeltdate*site + (1 + site|year), data = flrsnow0, REML = FALSE)
+m22 = lmer(lastflr ~ jmeltdate + (1|site), data = i, REML = FALSE)
+m23 = lmer(lastflr ~ jmeltdate + (1 + jmeltdate|site), data = i, REML = FALSE)
+m24 = lmer(lastflr ~ jmeltdate + (1|year), data = i, REML = FALSE)
+m25 = lmer(lastflr ~ jmeltdate + (1|site) + (1|year), data = i, REML = FALSE)
+m26 = lmer(lastflr ~ jmeltdate*year + (1|site), data = i, REML = FALSE) # best fit BIC
+m27 = lmer(lastflr ~ jmeltdate*site + (1|year), data = i, REML = FALSE) # best fit AIC
+m28 = lmer(lastflr ~ jmeltdate*site + (1|year) + (1|site), data = i, REML = FALSE)
+m29 = lmer(lastflr ~ jmeltdate*site + (1 + site|year), data = i, REML = FALSE)
 
 AIC(lastflrlm, m22, m23, m24, m25, m26, m27, m28, m29)
 AICc(lastflrlm, m22, m23, m24, m25, m26, m27, m28, m29)
@@ -123,18 +123,18 @@ r.squaredGLMM(m29)
 
 
 # peakflr ~ elevation ----
-elevpeakflrlm = lm(peakflr ~ elevation, data = flrsnow0)
+elevpeakflrlm = lm(peakflr ~ elevation, data = i)
 summary(elevpeakflrlm)
 anova(elevpeakflrlm)
 # significant, but less so than snowmelt date
 
 # flowering duration ~ jmeltdate ----
-meltdatedurationlm = lm(flrduration ~ jmeltdate, data = snowfirstflr)
+meltdatedurationlm = lm(flrduration ~ jmeltdate, data = i)
 summary(meltdatedurationlm)
 anova(meltdatedurationlm)
 # this is a pretty interesting result. Flowering duration is more influenced when snowmelt is later (or is it something else about that year?)
 # days from snowmelt to first flr ~ jmeltdate ----
-meltdatesnowtoflrlm = lm(snowtoflr ~ jmeltdate, data = snowfirstflr)
+meltdatesnowtoflrlm = lm(snowtoflr ~ jmeltdate, data = i)
 summary(meltdatesnowtoflrlm)
 anova(meltdatesnowtoflrlm)
 AIC(meltdatesnowtoflrlm)

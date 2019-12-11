@@ -1,0 +1,14 @@
+---
+title: "TEST"
+author: "Elena Suglia"
+date: "12/10/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE}
+source("plots.R")
+```

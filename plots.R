@@ -20,6 +20,8 @@ library(dplyr)
 
 setwd("~/Box Sync/Graduate School/PhD Research/Ch. 2) Lassen Snowmelt & Phenology/Data analysis/lassen-phenology")
 source("cleaning.R")
+source("ibutton.R")
+
 
 # Study system graphs ----
 
@@ -403,17 +405,18 @@ d5plot18 =
   geom_point() +
   geom_line() + #aes(linetype = herbind)
   facet_wrap(~pop, ncol = 1) +
-  theme(axis.line = element_line(colour = "black"),
-        legend.title = element_text(size=15),
-        legend.text = element_text(size = 14),
-        axis.text = element_text(size = 14),
-        axis.title = element_text(size = 15),
-        plot.title = element_text(size = 16),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        strip.text.x = element_text(size = 12, face = "bold")) +
+  theme_classic() +
+#  theme(axis.line = element_line(colour = "black"),
+#        legend.title = element_text(size=15),
+#        legend.text = element_text(size = 14),
+#        axis.text = element_text(size = 14),
+#        axis.title = element_text(size = 15),
+#        plot.title = element_text(size = 16),
+#        panel.grid.major = element_blank(),
+#        panel.grid.minor = element_blank(),
+#        panel.border = element_blank(),
+#        panel.background = element_blank(),
+#        strip.text.x = element_text(size = 12, face = "bold")) +
   ggtitle("2018") +
   xlab("Date") +
   ylab("Percent Flowering") +
@@ -437,17 +440,18 @@ d5plot19 = d5 %>%
   geom_point() +
   geom_line() + #aes(linetype = herbind)
   facet_wrap(~pop, ncol = 1) +
-  theme(axis.line = element_line(colour = "black"),
-        legend.title = element_text(size=15),
-        legend.text = element_text(size = 14),
-        axis.text = element_text(size = 14),
-        axis.title = element_text(size = 15),
-        plot.title = element_text(size = 16),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        strip.text.x = element_text(size = 12, face = "bold")) +
+  theme_classic() +
+#  theme(axis.line = element_line(colour = "black"),
+#        legend.title = element_text(size=15),
+#        legend.text = element_text(size = 14),
+#        axis.text = element_text(size = 14),
+#        axis.title = element_text(size = 15),
+#        plot.title = element_text(size = 16),
+#        panel.grid.major = element_blank(),
+#        panel.grid.minor = element_blank(),
+#        panel.border = element_blank(),
+#        panel.background = element_blank(),
+#        strip.text.x = element_text(size = 12, face = "bold")) +
   ggtitle("2019") +
   xlab("Date") +
   ylab("Percent Flowering") +
@@ -469,31 +473,31 @@ grid.arrange(d5plot18, d5plot19, nrow = 1, top=textGrob("Date vs percent populat
 #graph2ppt(file="date vs percent flowering with meltdate and herb.pptx", width = 9, height = 9, append=TRUE)
 
 # graph: coflowering with pops all together
-popflrperc %>%
-  ggplot(aes(date, meanpercflr, group = site, color = elevation, label = site)) +
-  geom_line() +
-  geom_point() +
-  geom_dl(method = list(dl.trans(x = x + 0.2), "last.points", cex = 0.8)) +
-  geom_dl(method = list(dl.trans(x = x - 0.2), "first.points", cex = 0.8)) +
-  scale_x_date(limits = as.Date(c("2018-06-25", "2018-09-05"))) +
+#popflrperc %>%
+#  ggplot(aes(date, meanpercflr, group = site, color = elevation, label = site)) +
+#  geom_line() +
+#  geom_point() +
+#  geom_dl(method = list(dl.trans(x = x + 0.2), "last.points", cex = 0.8)) +
+#  geom_dl(method = list(dl.trans(x = x - 0.2), "first.points", cex = 0.8)) +
+#  scale_x_date(limits = as.Date(c("2018-06-25", "2018-09-05"))) +
   #geom_text() +
   # ADD STANDARD ERROR BARS
-  scale_color_continuous(low = "orange", high = "blue") +
+#  scale_color_continuous(low = "orange", high = "blue") +
   #scale_color_brewer(name = "Site",
   #palette = "Dark2") +
-  ggtitle("Date vs percent of population flowering") +
-  xlab("Date") +
-  ylab("Percent Flowering") +
-  theme(legend.title = element_text(size=15),
-        legend.text = element_text(size = 13),
-        axis.text = element_text(size = 12),
-        axis.title = element_text(size = 14),
-        plot.title = element_text(size = 16),
-        axis.line = element_line(colour = "black"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank())
+#  ggtitle("Date vs percent of population flowering") +
+#  xlab("Date") +
+#  ylab("Percent Flowering") +
+#  theme(legend.title = element_text(size=15),
+#        legend.text = element_text(size = 13),
+#        axis.text = element_text(size = 12),
+#        axis.title = element_text(size = 14),
+#        plot.title = element_text(size = 16),
+#        axis.line = element_line(colour = "black"),
+#        panel.grid.major = element_blank(),
+#        panel.grid.minor = element_blank(),
+#        panel.border = element_blank(),
+#        panel.background = element_blank())
 
 # *** fitness over time ----
 
@@ -584,7 +588,7 @@ flrsnow = flrsnow0 %>%
 #remove_missing(flrsnow, finite = TRUE)
 
 #write.csv(flrsnow, "flrsnow.csv")
-flrsnow$variable <- factor(flrsnow$variable, levels = c("peakflr", "lastflr"))
+flrsnow$variable <- factor(flrsnow$variable, levels = c("firstflr", "peakflr", "lastflr"))
 
 # graph: individual meltdate ~ peak, and last flowering time
 flrsnow18 = flrsnow %>%
@@ -599,18 +603,18 @@ plotflrsnow18 = ggplot(data = flrsnow18, mapping = aes(jmeltdate, value, color =
   ylab("Flowering Phenology Date") +
   scale_color_brewer(name="Flowering\nPhenology\nMetric",
                      palette = "Dark2",
-                     labels=c("Peak Flowering", "Last Flowering")) +
+                     labels=c("First Flowering", "Peak Flowering", "Last Flowering")) +
   theme(legend.title = element_text(size=12),
         legend.text = element_text(size = 10),
         axis.text = element_text(size = 10),
         axis.title = element_text(size = 12),
-        plot.title = element_text(size = 1),
+        plot.title = element_text(size = 15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank()) +
   geom_smooth(method = lm) +
-  geom_jitter(data = flrsnow18, mapping = aes(jmeltdate, value, color = variable, alpha = 0.1), na.rm=TRUE)
+  geom_jitter(data = flrsnow18, mapping = aes(jmeltdate, value, color = variable), alpha = 0.3, na.rm=TRUE)
 
 plotflrsnow19 = ggplot(data = flrsnow19, mapping = aes(jmeltdate, value, color = variable)) +
   ggtitle("2019 Snowmelt date vs flowering phenology") +
@@ -618,7 +622,7 @@ plotflrsnow19 = ggplot(data = flrsnow19, mapping = aes(jmeltdate, value, color =
   ylab("Flowering Phenology Date") +
   scale_color_brewer(name="Flowering\nPhenology\nMetric",
                      palette = "Dark2",
-                     labels=c("Peak Flowering", "Last Flowering")) +
+                     labels=c("First Flowering", "Peak Flowering", "Last Flowering")) +
   theme(legend.title = element_text(size=12),
         legend.text = element_text(size = 10),
         axis.text = element_text(size = 10),
@@ -630,7 +634,7 @@ plotflrsnow19 = ggplot(data = flrsnow19, mapping = aes(jmeltdate, value, color =
         panel.border = element_blank(),
         panel.background = element_blank()) +
   geom_smooth(method = lm) +
-  geom_jitter(data = flrsnow19, mapping = aes(jmeltdate, value, color = variable, alpha = 0.1), na.rm=TRUE)
+  geom_jitter(data = flrsnow19, mapping = aes(jmeltdate, value, color = variable), alpha = 0.3, na.rm=TRUE)
 
 
 require(gridExtra)
@@ -747,7 +751,7 @@ flrsnowpop1 = flrsnowpop %>%
   spread(variable, value)
 
 flrsnowpopmean$year = as.factor(flrsnowpopmean$year)
-ggplot(data = flrsnowpopmean, aes(x = elevation, y = jmeltdate, color = site, group = year)) +
+elsnowmelt = ggplot(data = flrsnowpopmean, aes(x = elevation, y = jmeltdate, color = site, group = year)) +
   #facet_wrap(~year, ncol = 1) +
   geom_point(aes(shape = year), size = 4) +
   #geom_point(aes(elevation, meanpeak)) +
@@ -1146,3 +1150,163 @@ ggplot(data = snowherb, mapping = aes(jmeltdate, herbpres)) +
 # graph
 ggplot(data = snowherb, mapping = aes(jmeltdate, firstherb)) +
   geom_smooth()
+
+# dataframes ----
+
+# d is wide, partially cleaned dataframe
+# d1 is wide, cleaned dataframe with all data per individual per day
+# dind = individual per day dataframe
+# i = individual per year dataframe (no data per day)
+# p_year = plot per year dataframe
+# p = plot-level dataframe
+# s_year = site per year dataframe
+# s = site-level dataframe
+
+dind = d1 %>%
+  rename(site_plot = site) %>% 
+  mutate(site = case_when(
+    site_plot == "LVTR2.5" ~ "LVTR",
+    site_plot == "LVTR2.25" ~ "LVTR",
+    site_plot == "LVTR2" ~ "LVTR",
+    site_plot == "LVTR1.25" ~ "LVTR",
+    site_plot == "LVTR1.5" ~ "LVTR",
+    site_plot == "LVTR1.75" ~ "LVTR",
+    site_plot == "LVTR1" ~ "LVTR",
+    site_plot == "LV1" ~ "LV1",
+    site_plot == "LV2" ~ "LV2",
+    site_plot == "LV3" ~ "LV3")) %>%
+  mutate(meltdate = case_when(
+    year == 2018 & site == "LVTR" ~ "2018-06-01",
+    year == 2018 & site == "LVTR" ~ "2018-06-01",
+    year == 2018 & site == "LV1" ~ "2018-06-20",
+    year == 2018 & site == "LV2" ~ "2018-05-25",
+    year == 2018 & site == "LV3" ~ "2018-05-10",
+    year == 2019 & site == "LVTR" ~ "2019-06-18",
+    year == 2019 & site == "LV1" ~ "2019-08-06",
+    year == 2019 & site == "LV2" ~ "2019-06-28",
+    year == 2019 & site == "LV3"~ "2019-07-05")) %>%
+  mutate(jmeltdate = yday(meltdate)) %>%
+  mutate(elevation = case_when(
+    site_plot=="LVTR2.5" ~ 2853,
+    site_plot=="LVTR2.25" ~ 2845,
+    site_plot=="LVTR2" ~ 2808,
+    site_plot=="LVTR1.75" ~ 2773,
+    site_plot=="LVTR1.5" ~ 2761,
+    site_plot=="LVTR1" ~ 2756,
+    site_plot=="LV3" ~ 2353,
+    site_plot=="LV2" ~ 2500,
+    site_plot=="LV1" ~ 2593)) %>%
+  mutate(jday = yday(date)) %>%
+  unite("uniqueID_year", uniqueID, year, sep = "_", remove = FALSE, na.rm = FALSE)
+
+flring = dind %>%
+  drop_na(flrs) %>% # drops days on which an individual had NA for # of flowers
+  group_by(uniqueID_year) %>%
+  summarize(
+    firstflr = min(jday[is.na(flrs) == FALSE & flrs > 0]),
+    lastflr = max(jday[is.na(flrs) == FALSE & flrs > 0]),
+    peakflr = median(jday[which(flrs == max(flrs))]),
+    flrduration = lastflr - firstflr)
+
+budding = dind %>%
+  drop_na(buds) %>% # drops days on which an individual had NA for # of flowers
+  group_by(uniqueID_year) %>%
+  summarize(
+    firstbud = min(jday[is.na(buds) == FALSE & buds > 0]),
+    lastbud = max(jday[is.na(buds) == FALSE & buds > 0]),
+    peakbud = median(jday[which(buds == max(buds))]),
+    budduration = lastbud - firstbud)
+
+fruiting = dind %>%
+  drop_na(fruits) %>% # drops days on which an individual had NA for # of flowers
+  group_by(uniqueID_year) %>%
+  summarize(
+    firstfruit = min(jday[is.na(fruits) == FALSE & fruits > 0]),
+    lastfruit = max(jday[is.na(fruits) == FALSE & fruits > 0]),
+    peakfruit = median(jday[which(fruits == max(fruits))]),
+    fruitduration = lastfruit - firstfruit)
+
+fecundity = dind %>%
+  drop_na(fruits) %>%
+  group_by(uniqueID_year) %>%
+  summarize(
+    fecundity = max(fruits)
+  )
+
+snowtoflr = dind %>%
+  drop_na(jmeltdate) %>%
+  drop_na(flrs) %>%
+  group_by(uniqueID_year, jmeltdate) %>%
+  summarize(
+    firstflr = min(jday[is.na(flrs) == FALSE & flrs > 0])) %>%
+  mutate(firstflr = na_if(firstflr, Inf)) %>%  
+  mutate(firstflr = na_if(firstflr, -Inf)) %>% 
+  drop_na(firstflr) %>%
+  group_by(uniqueID_year, jmeltdate) %>%
+  summarize(
+    snowtoflr = firstflr - jmeltdate) %>%
+  select(-jmeltdate)
+
+dind = full_join(dind, fecundity, by = "uniqueID_year") 
+dind = full_join(dind, snowtoflr, by  = "uniqueID_year") 
+dind = full_join(dind, flring, by = "uniqueID_year") 
+dind = full_join(dind, budding, by = "uniqueID_year") 
+dind = full_join(dind, fruiting, by = "uniqueID_year")
+
+i = dind %>%
+  group_by(year, site, elevation, site_plot, plot, meltdate, jmeltdate, uniqueID, uniqueID_year, fecundity, snowtoflr, peakflr, firstflr, lastflr, flrduration) %>%
+  summarize(
+    meanflrs = mean(flrs)
+  ) %>%
+  select(-meanflrs) %>%
+  ungroup() %>%
+  mutate(firstflr = na_if(firstflr, Inf)) %>%  
+  mutate(firstflr = na_if(firstflr, -Inf)) %>% 
+  mutate(peakflr = na_if(peakflr, Inf)) %>%  
+  mutate(peakflr = na_if(peakflr, -Inf)) %>% 
+  mutate(lastflr = na_if(lastflr, Inf)) %>%  
+  mutate(lastflr = na_if(lastflr, -Inf)) %>% 
+  mutate(fecundity = na_if(fecundity, Inf)) %>%  
+  mutate(fecundity = na_if(fecundity, -Inf)) %>% 
+  mutate(snowtoflr = na_if(snowtoflr, Inf)) %>%  
+  mutate(snowtoflr = na_if(snowtoflr, -Inf)) %>% 
+  mutate(flrduration = na_if(flrduration, Inf)) %>%  
+  mutate(flrduration = na_if(flrduration, -Inf))
+  
+
+p_year = dind %>%
+  drop_na(firstflr) %>%
+  drop_na(flrs) %>%
+  drop_na(lastflr) %>%
+  group_by(year, site, elevation, site_plot, plot, meltdate, jmeltdate) %>%
+  summarize(
+    firstflr = min(firstflr),
+    peakflr = median(jday[which(flrs == max(flrs))]),
+    lastflr = max(lastflr)
+  )
+
+p = dind %>%
+  drop_na(firstflr) %>%
+  drop_na(flrs) %>%
+  drop_na(lastflr) %>%
+  group_by(site, elevation, site_plot, plot) %>%
+  summarize(
+    meanflr = mean(flrs)
+  ) %>%
+  select(-meanflr)
+
+s_jmeltdate = dind %>%
+  drop_na(meltdate) %>%
+  drop_na(jmeltdate) %>%
+  group_by(year, site) %>%
+  summarize(
+    median_jmeltdate = median(jmeltdate)
+  )
+
+s_elevation = dind %>%
+  group_by(site) %>%
+  summarize(
+    median_elevation = median(elevation))
+
+
+
